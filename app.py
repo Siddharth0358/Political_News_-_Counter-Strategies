@@ -15,6 +15,8 @@ import pandas as pd
 import io
 from dotenv import load_dotenv
 import os
+nltk.download('punkt')
+nltk.download('punkt_tab')
 
 load_dotenv()
 
