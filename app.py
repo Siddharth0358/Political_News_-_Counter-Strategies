@@ -15,15 +15,13 @@ import pandas as pd
 import io
 from dotenv import load_dotenv
 import os
+
 nltk.download('punkt')
-nltk.download('punkt_tab')
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
 
-
 load_dotenv()
-
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def fetch_rss_feed(feed_url, start_date, end_date, max_items=50):
@@ -108,7 +106,7 @@ def process_articles(news_data):
     articles_list = []
 
     total_articles = len(news_data)
-    progress_bar = st.progress(0) 
+    progress_bar = st.progress(0)
 
     for i, article in enumerate(news_data):
         content = scrape_article_content(article['link'])
@@ -117,7 +115,6 @@ def process_articles(news_data):
             title_sentiment = analyze_sentiment(article['title'])
             content_sentiment = analyze_sentiment(content)
 
-            
             if content_sentiment == "Positive" or title_sentiment == "Positive":
                 overall_sentiment = "Positive"
             elif content_sentiment == "Negative" or title_sentiment == "Negative":
@@ -125,11 +122,9 @@ def process_articles(news_data):
             else:
                 overall_sentiment = "Neutral"
 
-            
             counter_attack_article = generate_counter_attack_article(content, overall_sentiment)
             counter_sentiment = analyze_sentiment(counter_attack_article)
 
-            
             article_data = {
                 'Published Date': article['published_date'],
                 'Headline': article['title'],
@@ -143,54 +138,42 @@ def process_articles(news_data):
         else:
             st.warning(f"Content not found for article: {article['title']}")
 
-        
-        progress = (i + 1) / total_articles  
+        progress = (i + 1) / total_articles
         progress_bar.progress(progress)
 
-    
     df = pd.DataFrame(articles_list)
     st.session_state['df'] = df
     return df
 
-
 def main():
     st.title("News Sentiment Analysis and Counter-Attack Article Generator")
 
-    
     start_date = st.date_input("Start Date", datetime.date(2024, 1, 1))
-    end_date = st.date_input("End Date", datetime.date.today()) 
-    
+    end_date = st.date_input("End Date", datetime.date.today())
 
-    # Convert dates to datetime for proper comparison
     start_date = datetime.datetime.combine(start_date, datetime.datetime.min.time())
     end_date = datetime.datetime.combine(end_date, datetime.datetime.min.time())
 
     if st.button("Fetch and Process News"):
-        # Example feed URL (Indian politics)
         feed_url = "https://www.livemint.com/rss/politics"
         news_data = fetch_rss_feed(feed_url, start_date, end_date)
 
         if news_data:
-            # Add a progress bar
             with st.spinner("Processing articles..."):
                 df = process_articles(news_data)
 
-            # Display the DataFrame
             st.write("\nNews Articles with Sentiment Analysis and Counter-Attack Articles:")
             st.dataframe(df)
-            
-        if 'df' in st.session_state:
-            df = st.session_state['df']
 
-            # Allow users to download the DataFrame as an Excel file
-            # Save DataFrame to BytesIO stream
-            towrite = io.BytesIO()
-            with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
-                df.to_excel(writer, index=False, sheet_name='Sheet1')
-            towrite.seek(0)
+    if 'df' in st.session_state:
+        df = st.session_state['df']
 
-            st.download_button("Download Excel", towrite, file_name="news_data_with_sentiment.xlsx")
-        else:
-            st.warning("No news articles found in the specified date range.")
+        towrite = io.BytesIO()
+        with pd.ExcelWriter(towrite, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Sheet1')
+        towrite.seek(0)
+
+        st.download_button("Download Excel", towrite, file_name="news_data_with_sentiment.xlsx")
+
 if __name__ == "__main__":
     main()
