@@ -149,6 +149,7 @@ def process_articles(news_data):
 
     
     df = pd.DataFrame(articles_list)
+    st.session_state['df'] = df
     return df
 
 
@@ -177,6 +178,9 @@ def main():
             # Display the DataFrame
             st.write("\nNews Articles with Sentiment Analysis and Counter-Attack Articles:")
             st.dataframe(df)
+            
+        if 'df' in st.session_state:
+            df = st.session_state['df']
 
             # Allow users to download the DataFrame as an Excel file
             # Save DataFrame to BytesIO stream
