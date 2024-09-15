@@ -154,7 +154,7 @@ def main():
     start_date = datetime.datetime.combine(start_date, datetime.datetime.min.time())
     end_date = datetime.datetime.combine(end_date, datetime.datetime.min.time())
 
-    if st.button("Fetch and Process News"):
+    if st.button("Fetch and Process News") and 'df' not in st.session_state:
         feed_url = "https://www.livemint.com/rss/politics"
         news_data = fetch_rss_feed(feed_url, start_date, end_date)
 
